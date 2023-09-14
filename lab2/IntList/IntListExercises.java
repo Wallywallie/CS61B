@@ -15,9 +15,8 @@ public class IntListExercises {
             head.first += c;
             head = head.rest;
         }
-        if (head.rest == null) {
-            head.first += c;
-        }
+        head.first += c;
+
     }
 
     /**
