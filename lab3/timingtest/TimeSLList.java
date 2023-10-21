@@ -27,14 +27,15 @@ public class TimeSLList {
         AList<Double> times = new AList<>();
         AList<Integer> opCounts = new AList<>();
         int[] testCounts = {1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000};
+        int callTimes = 10000;
         for (int i = 0; i < testCounts.length; i += 1) {
             Ns.addLast(testCounts[i]);
-            opCounts.addLast(testCounts[0]);
+            opCounts.addLast(callTimes);
             SLList<Integer> sl = new SLList<>();
             for (int j = 0; j < testCounts[i]; j += 1) {
                 sl.addFirst(1);
             }
-            times.addLast(testTime(testCounts[0], sl));
+            times.addLast(testTime(callTimes, sl));
         }
         printTimingTable(Ns, times, opCounts);
 
