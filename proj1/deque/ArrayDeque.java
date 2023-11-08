@@ -2,11 +2,11 @@ package deque;
 import java.util.Iterator;
 
 public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
-   T[] items;
-   int size;
-   int length;
-   int zeroPos;
-   double usageFac;
+    private T[] items;
+    private int size;
+    private int length;
+    private int zeroPos;
+    private double usageFac;
 
     public ArrayDeque() {
         length = 8;
@@ -68,7 +68,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             zeroPos += 1;
             size = size - 1;
             return returnValue;
-            }
+        }
     }
     @Override
     public T removeLast() {
@@ -119,35 +119,31 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
                 return false;
             } else {
                 for (int i = 0; i < size; i += 1) {
-                    if (((Deque<T>) o).get(i) != this.get(i)) {
+                    if (!(((Deque<T>) o).get(i).equals(this.get(i)))) {
                         return false;
                     }
                 }
                 return true;
-                }
+            }
 
-            } else {
+        } else {
             return false;
         }
     }
     @Override
     public Iterator<T> iterator() {
-        return new generateIterator();
+        return new GenerateIterator();
     }
 
-    private class generateIterator implements Iterator<T>{
+    private class GenerateIterator implements Iterator<T> {
         int startIndex;
-        public generateIterator() {
+        GenerateIterator() {
             startIndex = 0;
 
         }
         @Override
         public boolean hasNext() {
-            if (startIndex < size) {
-                return true;
-            } else {
-                return false;
-            }
+            return startIndex < size;
         }
         @Override
         public T next() {
@@ -155,19 +151,6 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
             startIndex += 1;
             return items[iteratorIndex];
         }
-    }
-    public static void main (String[] args) {
-        ArrayDeque<Integer> arr = new ArrayDeque<>();
-        arr.addLast(1);
-        arr.addLast(2);
-        arr.addLast(3);
-        arr.addFirst(0);
-        arr.addFirst(-1);
-        arr.printDeque();
-        for (int i : arr) {
-            System.out.println(i);
-        }
-
     }
 }
 

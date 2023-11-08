@@ -6,8 +6,8 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     private IntNode sentinel;
     private int size;
 
-    public class IntNode {
-        public T item;
+    private class IntNode {
+        private T item;
         private IntNode next;
         private IntNode prev;
         public IntNode(T i, IntNode nextN, IntNode prevN) {
@@ -18,20 +18,15 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public LinkedListDeque() {
-        sentinel = new IntNode(null, null,null);
+        sentinel = new IntNode(null, null, null);
         sentinel.next = sentinel;
         sentinel.prev = sentinel;
         size = 0;
     }
-    public LinkedListDeque(T x) {
-        sentinel = new IntNode(null, null, null);
-        sentinel.next = new IntNode(x,sentinel, sentinel);
-        sentinel.prev = sentinel.next;
-        size = 1;
-    }
+
     @Override
     public void addFirst(T item) {
-        sentinel.next.prev= new IntNode(item, sentinel.next, sentinel);
+        sentinel.next.prev = new IntNode(item, sentinel.next, sentinel);
         sentinel.next = sentinel.next.prev;
         size += 1;
     }
@@ -118,31 +113,27 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     public Iterator<T> iterator() {
-        return new generateIterator();
+        return new GenerateIterator();
     }
 
-    public class generateIterator implements Iterator {
-       public int wizPoz;
-       public IntNode p;
+    private class GenerateIterator implements Iterator {
+        private int wizPoz;
+        private IntNode p;
 
-       public generateIterator() {
-           wizPoz = 0;
-           p = sentinel;
-       }
+        public GenerateIterator() {
+            wizPoz = 0;
+            p = sentinel;
+        }
         @Override
         public boolean hasNext() {
-            if (wizPoz < size) {
-                return true;
-            } else {
-                return false;
-            }
+            return wizPoz < size;
         }
         @Override
         public T next() {
-           T returnItem = p.next.item;
-           p = p.next;
-           wizPoz += 1;
-           return returnItem;
+            T returnItem = p.next.item;
+            p = p.next;
+            wizPoz += 1;
+            return returnItem;
         }
     }
     @Override
@@ -156,7 +147,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         if (o instanceof Deque) {
             if (((Deque<T>) o).size() == this.size()) {
                 for (int i = 0; i < size; i += 1) {
-                    if (((Deque<T>) o).get(i) != this.get(i)) {
+                    if (!(((Deque<T>) o).get(i).equals(this.get(i)))) {
                         return false;
                     }
                 }
@@ -168,17 +159,4 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return false;
         }
     }
-
-    public static void main (String[] args) {
-        LinkedListDeque<Integer> deq = new LinkedListDeque<>();
-        deq.addLast(1);
-        deq.addLast(2);
-        deq.addLast(3);
-        deq.addFirst(0);
-        deq.addFirst(-1);
-        for (int i : deq) {
-            System.out.println(i);
-        }
-    }
-
 }
