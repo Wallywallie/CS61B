@@ -10,7 +10,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private T item;
         private IntNode next;
         private IntNode prev;
-        public IntNode(T i, IntNode nextN, IntNode prevN) {
+        IntNode(T i, IntNode nextN, IntNode prevN) {
             item = i;
             next = nextN;
             prev = prevN;
@@ -120,7 +120,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private int wizPoz;
         private IntNode p;
 
-        public GenerateIterator() {
+        GenerateIterator() {
             wizPoz = 0;
             p = sentinel;
         }
