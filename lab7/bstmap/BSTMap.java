@@ -1,8 +1,7 @@
 package bstmap;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
@@ -284,15 +283,14 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
 
 
     public void printInOrder() {
+        ArrayList<K> lst = new ArrayList<>();
+        for (K key : keyset) {
+            lst.add(key);
+        }
+        Collections.sort(lst);
+        for (K key : lst) {
+            System.out.println(key + " " + get(key));
+        }
+    }
 
-    }
-    public static void main(String[] args) {
-        BSTMap<Integer, String> map = new BSTMap<>();
-        map.put(1, "high");
-        map.put(2, "high");
-        map.put(3, "high");
-        map.put(4, "high");
-        System.out.println(map.containsKey(2));
-        map.remove(4);
-    }
 }
