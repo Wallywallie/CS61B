@@ -239,19 +239,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     }
 
     public Iterator<K> iterator() {
-
         return keyset.iterator();
-    }
-
-    public static void main(String[] args) {
-        MyHashMap<Integer, String> map = new MyHashMap<>();
-        map.put(1, "A");
-        map.put(2, "A");
-        map.put(3, "A");
-        map.put(4, "A");
-        map.put(1, "B");
-        System.out.println(map.keySet().toString());
-        System.out.println(map.get(1));
     }
 
 
