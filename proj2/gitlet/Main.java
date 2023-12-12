@@ -1,4 +1,5 @@
 package gitlet;
+import static gitlet.Utils.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
@@ -10,6 +11,10 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
+        if (args.length == 0) {
+            Utils.error("Must have at least one argument", args);
+        }/*
+
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
