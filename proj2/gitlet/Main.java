@@ -1,4 +1,5 @@
 package gitlet;
+import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
@@ -12,18 +13,21 @@ public class Main {
     public static void main(String[] args) {
         // TODO: what if args is empty?
         if (args.length == 0) {
-            Utils.error("Must have at least one argument", args);
-        }/*
+            System.out.println("Please enter a command.");
+            System.exit(0);
+        }
 
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                initialization();
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
                 break;
             // TODO: FILL THE REST IN
         }
+
+
     }
 }
