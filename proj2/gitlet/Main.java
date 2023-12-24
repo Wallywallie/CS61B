@@ -18,12 +18,17 @@ public class Main {
         }
 
         String firstArg = args[0];
+
         switch(firstArg) {
             case "init":
                 initialization();
                 break;
             case "add":
+                String filename = args[1];
+                add(filename);
                 // TODO: handle the `add [filename]` command
+
+
                 break;
             // TODO: FILL THE REST IN
         }

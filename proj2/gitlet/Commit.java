@@ -3,6 +3,7 @@ package gitlet;
 // TODO: any imports you need here
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 import java.util.TreeMap;
 
 import static gitlet.Repository.REFHEADS_DIR;
@@ -32,29 +33,28 @@ public class Commit implements Serializable, Dumpable {
     private Date timeStamp;
 
     /** The sha1 code for current commit */
-    private String sha1code;
+    public static String sha1code;
 
     /** The parent commit for current commit, store the parent's commit in the form of String, namely sha1 code*/
-    private String parent;
+    public String parent;
 
     /** Store the head of current branch*/
-    private static String head;
+    public static String head;
+
+    public List<String> blobs;
 
 
     public Commit(String msg) {
         message = msg;
         timeStamp = new Date();
-        sha1code = sha1(this);
-        parent = head;
-        head = sha1code;
+
 
     }
 
     /** save commits in the name of sha1 code */
     public void saveCommit() {
-        File folder = join(Repository.COMMIT_DIR, sha1code);
-        String filename = ".gitlet/objects/" + sha1code + "/" + sha1code;
-        folder.mkdir(); //----->not check yet
+
+        String filename = ".gitlet/objects/" + sha1code;
         File outfile = new File(filename);
         writeObject(outfile, this);
 
@@ -62,8 +62,14 @@ public class Commit implements Serializable, Dumpable {
 
     }
     public void saveBranch() {
+
         File master = new File(".gitlet/refs/heads/master");
-        writeContents(master, head); //目前在.gitlet/refs/heads/master里写入了head的sha1code,究竟应该写什么？master代表branch吗？
+        writeContents(master, head);
+    }
+
+    public String generateSHA1() {
+        sha1code = sha1(blobs);
+        return sha1code;
     }
 
 

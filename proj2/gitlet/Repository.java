@@ -56,7 +56,7 @@ public class Repository {
     * creates an initial commit, when initializing a commit should:
     *           ->timeStamp
     *           ->log message
-    *           ->sha1 code
+    *
     *           ->save information to system
     *
     *
@@ -72,7 +72,33 @@ public class Repository {
 
         String MSG = "initial commit";
         Commit initialCommit = new Commit(MSG);
+        initialCommit.saveCommit();
 
+    }
+
+    public static void add(String filename) {
+        /* if the current working version of the file is identical to the version in the current commit,
+        * do not stage it to be added,and remove it from the staging area if it is already there
+        * */
+
+
+        File fileToAdd = null;
+
+        File[] files = CWD.listFiles();
+        for (File file : files) {
+            if (file.isFile() && filename.equals(file.getName())) {
+                fileToAdd = file;
+            }
+        }
+        //check if the file exists
+        if (fileToAdd == null) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+        //write file to staging area whose name is index
+        String index = ".gitlet/index";
+        File stagingArea = new File(index);
+        Utils.writeObject(stagingArea, fileToAdd);
 
     }
 
