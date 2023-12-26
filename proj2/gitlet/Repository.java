@@ -56,23 +56,29 @@ public class Repository {
     * creates an initial commit, when initializing a commit should:
     *           ->timeStamp
     *           ->log message
-    *
     *           ->save information to system
-    *
+    * creates staging area
     *
     * */
     public static void initialization() {
         checkfolder();
         GITLET_DIR.mkdir();
+
         HEAD = new File(".gitlet/HEAD");
         writeContents(HEAD,"refs/heads/master"); //初始化HEAD文件
+
         COMMIT_DIR.mkdir(); //------> not check yet
         REF_DIR.mkdir();
         REFHEADS_DIR.mkdir();
 
+        //initial commit
         String MSG = "initial commit";
         Commit initialCommit = new Commit(MSG);
         initialCommit.saveCommit();
+
+        //initialize staging area
+        IndexTree index = new IndexTree();
+        index.saveIndex();
 
     }
 
@@ -81,9 +87,9 @@ public class Repository {
         * do not stage it to be added,and remove it from the staging area if it is already there
         * */
 
-
+        IndexTree index;
         File fileToAdd = null;
-
+        //find file to be added
         File[] files = CWD.listFiles();
         for (File file : files) {
             if (file.isFile() && filename.equals(file.getName())) {
@@ -95,10 +101,45 @@ public class Repository {
             System.out.println("File does not exist.");
             System.exit(0);
         }
-        //write file to staging area whose name is index
-        String index = ".gitlet/index";
-        File stagingArea = new File(index);
-        Utils.writeObject(stagingArea, fileToAdd);
+        //check if the file is equal to current commit version
+        //curr version->head
+        //is equal->tracked file
+        index = IndexTree.fromFile();
+
+
+        //save file to repo in the name of sha1
+        Blob blob = new Blob(fileToAdd);
+        blob.saveBlob();
+
+        //write file name and its corresponding sha1 to index
+
+        index.trackFile(filename, blob.sha1);
+
+
+    }
+
+    /* this method handles the commit command
+    *
+    * */
+    public static void gitCommit(String msg) {
+        Commit curr = new Commit(msg);
+        curr.parent = Commit.head;
+        //handle files ->save tracked files ->save staging area
+
+        //find the staging area and save it to repo;
+        File[] files = GITLET_DIR.listFiles();
+        File fileToSave = null;
+        for (File f : files) {
+            if (f.isFile() && f.getName().equals("index")) {
+                fileToSave = f;
+            }
+        }
+        if (fileToSave == null) {
+            System.out.println("Staging Area not Found");
+            System.exit(0);
+        }
+        String sha1 = Utils.sha1(fileToSave);
+        String filename = ".gitlet/objects/" + sha1;
 
     }
 

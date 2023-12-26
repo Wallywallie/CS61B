@@ -26,11 +26,19 @@ public class Main {
             case "add":
                 String filename = args[1];
                 add(filename);
-                // TODO: handle the `add [filename]` command
+                break;
 
+            case "commit":
+                String msg = args[1];//---->unchecked
 
                 break;
-            // TODO: FILL THE REST IN
+
+
+            case "log":
+
+                break;
+
+
         }
 
 
