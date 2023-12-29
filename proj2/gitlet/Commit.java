@@ -34,7 +34,7 @@ public class Commit implements Serializable, Dumpable {
     private Date timeStamp;
 
     /** The sha1 code for current commit */
-    public static String sha1code;
+    public String sha1code;
 
     /** The parent commit for current commit, store the parent's commit in the form of String, namely sha1 code*/
     public String parent;
@@ -60,10 +60,26 @@ public class Commit implements Serializable, Dumpable {
 
     /** save commits in the name of sha1 code */
     public void saveCommit() {
-        generateSHA1();
-        String filename = ".gitlet/objects/" + sha1code;
-        File outfile = new File(filename);
-        writeObject(outfile, this);
+        File outFile = new File(".gitlet/Commit");
+        Utils.writeObject(outFile, this);
+        File[] files = Repository.GITLET_DIR.listFiles();
+        for (File f : files) {
+            if (f.isFile() && f.getName().equals("Commit")) {
+                sha1code = Utils.sha1(readContents(f));
+                System.out.println(sha1code);
+                String foldername = sha1code.substring(0,2);
+                File folder = join(Repository.COMMIT_DIR, foldername);
+                if (!folder.exists()) {
+                    folder.mkdir();
+                }
+
+                String newFilename = ".gitlet/objects/" + foldername + "/"+ sha1code.substring(2,sha1code.length());
+                System.out.println(newFilename);
+                File newFile = new File(newFilename);
+                f.renameTo(newFile);
+            }
+        }
+
     }
 
     public void trackFile(String sha1ofFile, String name) {

@@ -89,6 +89,7 @@ public class Repository {
 
         IndexTree index;
         File fileToAdd = null;
+        Commit curr;
         //find file to be added
         File[] files = CWD.listFiles();
         for (File file : files) {
@@ -105,6 +106,7 @@ public class Repository {
         //curr version->head
         //is equal->tracked file
         index = IndexTree.fromFile();
+        curr = Commit.getCurrCommit();
 
 
         //save file to repo in the name of sha1

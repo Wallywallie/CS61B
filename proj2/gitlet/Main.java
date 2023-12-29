@@ -29,7 +29,7 @@ public class Main {
                 break;
 
             case "commit":
-                String msg = args[1];//---->unchecked
+                //String msg = args[1];//---->unchecked
 
                 break;
 
