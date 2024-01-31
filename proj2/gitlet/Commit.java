@@ -40,7 +40,7 @@ public class Commit implements Serializable, Dumpable {
     public String parent;
 
     /** Store the head of current branch*/
-    public static String head;
+    public static String HEAD;
     /* tracked files
     * should map the sha1 code of current commit to the file
     * each file has a sha1 code
@@ -48,14 +48,13 @@ public class Commit implements Serializable, Dumpable {
     public List<String> blobs;
 
     //filename ->its sha1 code
-    private TreeMap<String, String> _mapping = new TreeMap<>();
+    public TreeMap<String, String> mapping;
 
 
     public Commit(String msg) {
         message = msg;
         timeStamp = new Date();
-
-
+        mapping = new TreeMap<>();
     }
 
     /** save commits in the name of sha1 code */
@@ -80,12 +79,13 @@ public class Commit implements Serializable, Dumpable {
             }
         }
 
+        HEAD = sha1code;
+
     }
 
-    public void trackFile(String sha1ofFile, String name) {
-        _mapping.put(sha1ofFile, name);
+    public void trackFile(String filename, String sha1) {
+        mapping.put(filename, sha1);
     }
-
     public static Commit getCurrCommit() {
         Commit curr = null;
         String branch = Commit.getCurrBranch();
@@ -130,7 +130,7 @@ public class Commit implements Serializable, Dumpable {
     public void saveBranch() {
 
         File master = new File(".gitlet/refs/heads/master");
-        writeContents(master, head);
+        writeContents(master, HEAD);
     }
 
     public void generateSHA1() {
@@ -140,7 +140,7 @@ public class Commit implements Serializable, Dumpable {
 
     @Override
     public void dump() {
-        System.out.printf("size: %d%nmapping: %s%n", _size, _mapping);
+        System.out.printf("size: %d%nmapping: %s%n", _size, mapping);
     }
 
     int _size;

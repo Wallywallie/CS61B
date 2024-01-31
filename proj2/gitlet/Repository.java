@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.util.HashMap;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -60,6 +62,7 @@ public class Repository {
     * creates staging area
     *
     * */
+
     public static void initialization() {
         checkfolder();
         GITLET_DIR.mkdir();
@@ -77,17 +80,20 @@ public class Repository {
         initialCommit.saveCommit();
 
         //initialize staging area
-        IndexTree index = new IndexTree();
+        Index index = new Index();
         index.saveIndex();
 
     }
+
+
+    /* ------------These methods handle the "add" command --------------------------- */
 
     public static void add(String filename) {
         /* if the current working version of the file is identical to the version in the current commit,
         * do not stage it to be added,and remove it from the staging area if it is already there
         * */
 
-        IndexTree index;
+        Index index;
         File fileToAdd = null;
         Commit curr;
         //find file to be added
@@ -102,22 +108,30 @@ public class Repository {
             System.out.println("File does not exist.");
             System.exit(0);
         }
+
+        //create a file blob
+        Blob blob = new Blob(fileToAdd);
+
+
         //check if the file is equal to current commit version
         //curr version->head
         //is equal->tracked file
-        index = IndexTree.fromFile();
+        index = Index.fromFile();
         curr = Commit.getCurrCommit();
+        if (curr.mapping.containsKey(blob.filename) && curr.mapping.get(blob.filename).equals(blob.sha1)) {
+            if (index.isTracked(blob.filename)) {
+                index.untrackFile(blob.filename);
+            }
+            return;
+        }
 
 
-        //save file to repo in the name of sha1
-        Blob blob = new Blob(fileToAdd);
-        blob.saveBlob();
+
 
         //write file name and its corresponding sha1 to index
-
         index.trackFile(filename, blob.sha1);
-
-
+        //save file to repo in the name of sha1
+        blob.saveBlob();
     }
 
     /* this method handles the commit command
@@ -125,23 +139,21 @@ public class Repository {
     * */
     public static void gitCommit(String msg) {
         Commit curr = new Commit(msg);
-        curr.parent = Commit.head;
-        //handle files ->save tracked files ->save staging area
+        curr.parent = Commit.HEAD;
 
-        //find the staging area and save it to repo;
-        File[] files = GITLET_DIR.listFiles();
-        File fileToSave = null;
-        for (File f : files) {
-            if (f.isFile() && f.getName().equals("index")) {
-                fileToSave = f;
+        //handle files ->save staging area
+
+        //record the staging area into commit;
+        Index index = Index.fromFile();
+        HashMap<String, String> mapping = index.getTrackedFile();
+        if (mapping != null) {
+            for (String key : mapping.keySet()) {
+                curr.trackFile(key, mapping.get(key));
             }
         }
-        if (fileToSave == null) {
-            System.out.println("Staging Area not Found");
-            System.exit(0);
-        }
-        String sha1 = Utils.sha1(fileToSave);
-        String filename = ".gitlet/objects/" + sha1;
+
+        curr.saveCommit();
+
 
     }
 
