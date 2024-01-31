@@ -33,7 +33,8 @@ public class Repository {
 
     public static final File REF_DIR = join(GITLET_DIR, "refs");
 
-    public static final File REFHEADS_DIR = join(GITLET_DIR, "heads");
+    public static final File REFHEADS_DIR = join(REF_DIR, "heads");
+    public static File master; //to record the head of current branch
 
 
     /* TODO: fill in the rest of this class. */
@@ -73,11 +74,14 @@ public class Repository {
         COMMIT_DIR.mkdir(); //------> not check yet
         REF_DIR.mkdir();
         REFHEADS_DIR.mkdir();
+        master = new File(".gitlet/refs/heads/master");
 
         //initial commit
         String MSG = "initial commit";
         Commit initialCommit = new Commit(MSG);
         initialCommit.saveCommit();
+        initialCommit.writeInMaster(master);
+
 
         //initialize staging area
         Index index = new Index();
@@ -141,7 +145,7 @@ public class Repository {
         Commit curr = new Commit(msg);
         curr.parent = Commit.HEAD;
 
-        //handle files ->save staging area
+
 
         //record the staging area into commit;
         Index index = Index.fromFile();
@@ -153,6 +157,8 @@ public class Repository {
         }
 
         curr.saveCommit();
+        master = new File(".gitlet/refs/heads/master");//werid though...
+        curr.writeInMaster(master);
 
 
     }

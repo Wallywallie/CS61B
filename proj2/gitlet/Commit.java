@@ -30,6 +30,7 @@ public class Commit implements Serializable, Dumpable {
     /** The message of this Commit. */
     private String message;
 
+
     /** The date of the commit */
     private Date timeStamp;
 
@@ -81,6 +82,9 @@ public class Commit implements Serializable, Dumpable {
 
         HEAD = sha1code;
 
+    }
+    public void writeInMaster(File f) {
+            writeContents(f, HEAD);
     }
 
     public void trackFile(String filename, String sha1) {

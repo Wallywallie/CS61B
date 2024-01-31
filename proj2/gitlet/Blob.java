@@ -19,7 +19,8 @@ public class Blob implements Serializable {
         sha1 = Utils.sha1(Utils.readContents(f));
     }
 
-    public void saveBlob() {//待精简
+    public void saveBlob() {
+        //TODO:simplify the code
         String filename = ".gitlet/Blob";
         File outFile = new File(filename);
         Utils.writeObject(outFile, this);
