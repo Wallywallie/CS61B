@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.Formatter;
 
 import static gitlet.Utils.*;
 
@@ -70,7 +71,7 @@ public class Repository {
         GITLET_DIR.mkdir();
 
         HEAD = new File(".gitlet/HEAD");
-        writeContents(HEAD,"refs/heads/master"); //初始化HEAD文件
+        writeContents(HEAD,"master"); //初始化HEAD文件
 
         COMMIT_DIR.mkdir(); //------> not check yet
         REF_DIR.mkdir();
@@ -219,6 +220,33 @@ public class Repository {
             }
 
         }
+    }
+
+    /* ------------These methods handle the "log" command --------------------------- */
+    public static void log() {
+        Commit curr = Commit.getCurrCommit();
+
+        String currBranch = Commit.getCurrBranch();
+        File f = join(REFHEADS_DIR, currBranch);
+        String sha1 = null;
+        if (f.exists()) {
+            sha1 = readContentsAsString(f);
+        }
+
+        //TODO:Merge case
+
+        while (curr != null) {
+            System.out.println("===");
+            System.out.println("commit: " + sha1);
+            System.out.println("Date: " + curr.printDate());
+            System.out.println(curr.message);
+            System.out.println();
+
+            String parentCommit = curr.parent;
+            curr = Commit.fromFile(parentCommit);
+            sha1 = parentCommit;
+        }
+
     }
 
 }

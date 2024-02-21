@@ -38,9 +38,8 @@ public class Main {
                 remove(fname);
                 break;
             case "log":
-
+                log();
                 break;
-
 
         }
 

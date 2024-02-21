@@ -3,15 +3,13 @@ package gitlet;
 // TODO: any imports you need here
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static gitlet.Repository.REFHEADS_DIR;
 import static gitlet.Utils.*;
 import static gitlet.Utils.join;
-
-import java.util.Date; // TODO: You'll likely use this in this class
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -29,7 +27,7 @@ public class Commit implements Serializable, Dumpable {
      */
 
     /** The message of this Commit. */
-    private String message;
+    public String message;
 
 
     /** The date of the commit */
@@ -73,6 +71,7 @@ public class Commit implements Serializable, Dumpable {
     public Commit(String msg) {
         message = msg;
         timeStamp = new Date();
+
         mapping = new TreeMap<>();
         File masterfile = join(REFHEADS_DIR, "master");
         if (masterfile.isFile()) {
@@ -112,6 +111,13 @@ public class Commit implements Serializable, Dumpable {
         writeContents(masterfile, sha1code);
 
     }
+
+    public String printDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy XXX", Locale.ENGLISH);
+        String output = sdf.format(timeStamp);
+        return output;
+    }
+
     public boolean isTracked(String filename) {
         return mapping.containsKey(filename);
     }
@@ -161,11 +167,14 @@ public class Commit implements Serializable, Dumpable {
     public static Commit fromFile(String sha1) {
         String foldername = sha1.substring(0, 2);
         File searchingDir = join(Repository.COMMIT_DIR, foldername);
-        File[] files = searchingDir.listFiles();
+
         Commit commit = null;
-        for (File f : files) {
-            if (f.isFile() && f.getName().equals(sha1.substring(2, sha1.length()))) {
-                commit = readObject(f, Commit.class);
+        if (searchingDir.exists()) {
+            File[] files = searchingDir.listFiles();
+            for (File f : files) {
+                if (f.isFile() && f.getName().equals(sha1.substring(2, sha1.length()))) {
+                    commit = readObject(f, Commit.class);
+                }
             }
         }
 
