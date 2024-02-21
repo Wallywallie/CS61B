@@ -3,6 +3,7 @@ package gitlet;
 // TODO: any imports you need here
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -51,11 +52,36 @@ public class Commit implements Serializable, Dumpable {
     //filename ->its sha1 code
     public TreeMap<String, String> mapping;
 
+    private class CommitTree {
+
+        String cur;
+        CommitTree prev;
+        CommitTree(String c ,CommitTree p) {
+            cur = c;
+            prev = p;
+        }
+        CommitTree(String c) {
+            cur = c;
+            prev = null;
+        }
+
+    }
+
+    public CommitTree t;
+
 
     public Commit(String msg) {
         message = msg;
         timeStamp = new Date();
         mapping = new TreeMap<>();
+        File masterfile = join(REFHEADS_DIR, "master");
+        if (masterfile.isFile()) {
+            parent = readContentsAsString(masterfile);
+        } else {
+            parent = "null";
+        }
+
+
     }
 
     /** save commits in the name of sha1 code */
@@ -80,15 +106,21 @@ public class Commit implements Serializable, Dumpable {
             }
         }
 
-        HEAD = sha1code;
+        //write current sha1 into branch, namely master
+        HEAD = sha1code; // idea:this HEAD is not written in the commit file
+        File masterfile = join(REFHEADS_DIR, "master");
+        writeContents(masterfile, sha1code);
 
     }
-    public void writeInMaster(File f) {
-            writeContents(f, HEAD);
-    }
 
-    public void trackFile(String filename, String sha1) {
-        mapping.put(filename, sha1);
+
+    public void trackFile(TreeMap<String, String> mapping) {
+        if (mapping != null) {
+            for (String key : mapping.keySet()) {
+                mapping.put(key,  mapping.get(key));
+            }
+        }
+
     }
     public static Commit getCurrCommit() {
         Commit curr = null;

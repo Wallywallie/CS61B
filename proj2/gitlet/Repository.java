@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 import static gitlet.Utils.*;
 
@@ -80,8 +81,6 @@ public class Repository {
         String MSG = "initial commit";
         Commit initialCommit = new Commit(MSG);
         initialCommit.saveCommit();
-        initialCommit.writeInMaster(master);
-
 
         //initialize staging area
         Index index = new Index();
@@ -129,9 +128,6 @@ public class Repository {
             return;
         }
 
-
-
-
         //write file name and its corresponding sha1 to index
         index.trackFile(filename, blob.sha1);
         //save file to repo in the name of sha1
@@ -142,23 +138,44 @@ public class Repository {
     *
     * */
     public static void gitCommit(String msg) {
-        Commit curr = new Commit(msg);
-        curr.parent = Commit.HEAD;
 
-
-
-        //record the staging area into commit;
-        Index index = Index.fromFile();
-        HashMap<String, String> mapping = index.getTrackedFile();
-        if (mapping != null) {
-            for (String key : mapping.keySet()) {
-                curr.trackFile(key, mapping.get(key));
-            }
+        //failure cases: no comment
+        if (msg.isEmpty()) {
+            System.out.println("Please enter a commit message.");
+            System.exit(0);
         }
 
+        //failure cases: no file has been satged
+        Index index = Index.fromFile();
+        TreeMap<String, String> mapping = index.getTrackedFile();
+        if (mapping == null) {
+            System.out.println("No changes added to the commit.");
+            System.exit(0);
+        }
+
+
+        Commit curr = new Commit(msg);
+
+        //record the parent's recordings into current commit
+        Commit parentCommit = null;
+        if (curr.parent != null) {
+            // to find the exact commit using sha1 code of current commit
+            parentCommit = Commit.fromFile( curr.parent);
+        }
+        if (parentCommit != null) {
+            curr.trackFile(parentCommit.mapping);
+        }
+
+        //record the staging area into commit;
+
+
+        curr.trackFile(mapping);
+
         curr.saveCommit();
-        master = new File(".gitlet/refs/heads/master");//werid though...
-        curr.writeInMaster(master);
+
+        //clean the staging area
+        Index newIndex = new Index();
+        newIndex.saveIndex();
 
 
     }

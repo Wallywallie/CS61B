@@ -8,11 +8,11 @@ import java.util.TreeMap;
 public class Index implements Serializable {
 
 
-    private HashMap<String, String> mapping; //using mapping to record which file to be tracked
+    private TreeMap<String, String> mapping; //using mapping to record which file to be tracked
 
     public Index() {
 
-        mapping = new HashMap<>();
+        mapping = new TreeMap<>();
     }
 
     public void trackFile(String filename, String sha1) {
@@ -27,7 +27,7 @@ public class Index implements Serializable {
     public boolean isTracked(String filename) {
         return mapping.containsKey(filename);
     }
-    public HashMap<String, String> getTrackedFile () {
+    public TreeMap<String, String> getTrackedFile () {
         return mapping;
     }
 
