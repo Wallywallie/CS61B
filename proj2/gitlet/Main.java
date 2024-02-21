@@ -40,6 +40,9 @@ public class Main {
             case "log":
                 log();
                 break;
+            case "global-log":
+                globalLog();
+                break;
 
         }
 

@@ -145,7 +145,7 @@ public class Commit implements Serializable, Dumpable {
         File[] files = REFHEADS_DIR.listFiles();
         String sha1forCurrCommit;
         for (File f : files) {
-            if (f.isFile() && f.getName().equals("master")) {
+            if (f.isFile() && f.getName().equals(branch)) {
                 sha1forCurrCommit = readContentsAsString(f);
                 curr = fromFile(sha1forCurrCommit);
             }

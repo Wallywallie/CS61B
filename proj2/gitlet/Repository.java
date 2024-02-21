@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Formatter;
 
@@ -234,7 +235,31 @@ public class Repository {
         }
 
         //TODO:Merge case
+        printLog(curr, sha1);
 
+    }
+
+    /* ------------These methods handle the "global-log" command --------------------------- */
+    public static void globalLog() {
+        //iterate through the head dir and get a list of sha1 String
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        if (lst != null) {
+            for (String i : lst) {
+                File f = join(REFHEADS_DIR, i);
+                String sha1 = null;
+                Commit curr = null;
+                if (f.exists()) {
+                    sha1 = readContentsAsString(f);
+                    curr = Commit.fromFile(sha1);
+                }
+                printLog( curr,sha1);
+            }
+        }
+
+
+    }
+
+    private static void printLog(Commit curr, String sha1) {
         while (curr != null) {
             System.out.println("===");
             System.out.println("commit: " + sha1);
