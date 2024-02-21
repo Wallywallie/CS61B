@@ -10,9 +10,12 @@ public class Index implements Serializable {
 
     private TreeMap<String, String> mapping; //using mapping to record which file to be tracked
 
+    private TreeMap<String, String> removal; // used for record file to be removed
+
     public Index() {
 
         mapping = new TreeMap<>();
+        removal = new TreeMap<>();
     }
 
     public void trackFile(String filename, String sha1) {
@@ -29,6 +32,13 @@ public class Index implements Serializable {
     }
     public TreeMap<String, String> getTrackedFile () {
         return mapping;
+    }
+
+    public TreeMap<String, String> getRemovalFile() {return removal;}
+
+    public void trackFileToRemove(String filename, String sha1) {
+
+        removal.put(filename, sha1);
     }
 
 

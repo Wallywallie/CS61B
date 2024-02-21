@@ -130,6 +130,8 @@ public class Repository {
 
         //write file name and its corresponding sha1 to index
         index.trackFile(filename, blob.sha1);
+        index.saveIndex();
+
         //save file to repo in the name of sha1
         blob.saveBlob();
     }
@@ -145,9 +147,11 @@ public class Repository {
             System.exit(0);
         }
 
-        //failure cases: no file has been satged
+        //failure cases: no file has been staged
         Index index = Index.fromFile();
+        System.out.println(index.getTrackedFile().toString());
         TreeMap<String, String> mapping = index.getTrackedFile();
+        TreeMap<String, String> removal = index.getRemovalFile();
         if (mapping == null) {
             System.out.println("No changes added to the commit.");
             System.exit(0);
@@ -167,9 +171,8 @@ public class Repository {
         }
 
         //record the staging area into commit;
-
-
         curr.trackFile(mapping);
+        curr.untrackFile(removal);
 
         curr.saveCommit();
 
@@ -180,5 +183,42 @@ public class Repository {
 
     }
 
+    /* ------------These methods handle the "remove" command --------------------------- */
+    public static void remove(String filename) {
+        //failure case: if file is not staged or tracked by current commit.
+        Commit curr = Commit.getCurrCommit();
+        Index idx = Index.fromFile();
+        boolean isStaged = idx.isTracked(filename);
+        boolean isTracked = curr.isTracked(filename);
+        if (!(isStaged || isTracked)) {
+            System.out.println("No reason to remove the file.");
+            return;
+        }
+
+        //delete the relevant blob
+        String sha1 = curr.mapping.get(filename);
+        File f = join(COMMIT_DIR, sha1.substring(0, 2));
+        f = join(f, sha1.substring(2, sha1.length()));
+        if (f.exists()) {
+            f.delete();
+        }
+
+        if (isStaged) {
+            //untrack
+            idx.untrackFile(filename);
+        }
+
+        if (isTracked) {
+            //stage for removal
+            idx.trackFileToRemove(filename, sha1);
+
+            //delete file in working directory
+            File fInWorkingDir = join(CWD, filename);
+            if (fInWorkingDir.exists()) {
+                restrictedDelete(fInWorkingDir);
+            }
+
+        }
+    }
 
 }

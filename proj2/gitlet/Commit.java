@@ -112,15 +112,25 @@ public class Commit implements Serializable, Dumpable {
         writeContents(masterfile, sha1code);
 
     }
+    public boolean isTracked(String filename) {
+        return mapping.containsKey(filename);
+    }
 
-
-    public void trackFile(TreeMap<String, String> mapping) {
-        if (mapping != null) {
-            for (String key : mapping.keySet()) {
-                mapping.put(key,  mapping.get(key));
+    public void trackFile(TreeMap<String, String> mp) {
+        if (mp != null) {
+            for (String key : mp.keySet()) {
+                mapping.put(key,  mp.get(key));
             }
         }
 
+    }
+
+    public void untrackFile(TreeMap<String, String> removal) {
+        if (removal != null) {
+            for (String key : removal.keySet()) {
+                mapping.remove(key);
+            }
+        }
     }
     public static Commit getCurrCommit() {
         Commit curr = null;

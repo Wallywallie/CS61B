@@ -33,7 +33,10 @@ public class Main {
                 gitCommit(msg);
                 break;
 
-
+            case "rm":
+                String fname = args[1];
+                remove(fname);
+                break;
             case "log":
 
                 break;
