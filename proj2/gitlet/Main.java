@@ -51,9 +51,22 @@ public class Main {
             case "status":
                 status();
                 break;
-
-
-
+            case "checkout":
+                int cnt = args.length;
+                if (cnt == 2) {
+                    String brachName = args[1];
+                    checkoutBranch(brachName);
+                } else if (cnt == 3){
+                    String fileName = args[2];
+                } else if (cnt == 4) {
+                    String commitId = args[1];
+                    String fileName = args[3];
+                }
+                break;
+            case "branch":
+                String branch = args[1];
+                createBranch(branch);
+                break;
         }
 
 

@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -315,7 +316,7 @@ public class Repository {
         }
     }
 
-    /* ------------These methods handle the "find" command --------------------------- */
+    /* ------------These methods handle the "status" command --------------------------- */
     public static void status() {
         //branches
         System.out.println("=== Branches ===");
@@ -361,6 +362,49 @@ public class Repository {
         System.out.println();
         System.out.println("=== Untracked Files ===");
         System.out.println();
+
+    }
+
+    /* ------------These methods handle the "checkout" command --------------------------- */
+    public static void checkoutBranch(String branch) {
+
+
+
+
+
+
+    }
+    public static void checkout() {
+
+
+
+    }
+    public static void createBranch(String branch) {
+        //failure case: if the branch already exists
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        if (lst != null) {
+            for (String i : lst) {
+                if (i.equals(branch)) {
+                    System.out.println("A branch with that name already exists.");
+                    return;
+                }
+            }
+        }
+        File newBranch = join(REFHEADS_DIR, branch);
+        try {
+            newBranch.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (newBranch.exists()) {
+            String currBranchName = Commit.getCurrBranch();
+            File currBranch = join(REFHEADS_DIR, currBranchName);
+            if (currBranch.exists()) {
+                String currSha1 = readContentsAsString(currBranch);
+                writeContents(newBranch, currSha1);
+
+            }
+        }
 
     }
 
