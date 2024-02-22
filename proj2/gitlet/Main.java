@@ -48,6 +48,11 @@ public class Main {
                 String mg = args[1];
                 find(mg);
                 break;
+            case "status":
+                status();
+                break;
+
+
 
         }
 

@@ -1,10 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.Formatter;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -32,7 +29,7 @@ public class Repository {
 
     public static final File COMMIT_DIR = join(GITLET_DIR, "objects");
 
-    public static File HEAD;
+
 
     public static final File REF_DIR = join(GITLET_DIR, "refs");
 
@@ -70,8 +67,7 @@ public class Repository {
     public static void initialization() {
         checkfolder();
         GITLET_DIR.mkdir();
-
-        HEAD = new File(".gitlet/HEAD");
+        File HEAD = new File(".gitlet/HEAD");
         writeContents(HEAD,"master"); //初始化HEAD文件
 
         COMMIT_DIR.mkdir(); //------> not check yet
@@ -197,20 +193,31 @@ public class Repository {
             return;
         }
 
-        //delete the relevant blob
-        String sha1 = curr.mapping.get(filename);
-        File f = join(COMMIT_DIR, sha1.substring(0, 2));
-        f = join(f, sha1.substring(2, sha1.length()));
-        if (f.exists()) {
-            f.delete();
-        }
+
 
         if (isStaged) {
+            //delete the relevant blob
+            String sha1 = idx.getTrackedFile().get(filename);
+            File f = join(COMMIT_DIR, sha1.substring(0, 2));
+            f = join(f, sha1.substring(2, sha1.length()));
+            if (f.exists()) {
+                f.delete();
+            }
+
             //untrack
             idx.untrackFile(filename);
         }
 
         if (isTracked) {
+
+            //delete the relevant blob
+            String sha1 = curr.mapping.get(filename);
+            File f = join(COMMIT_DIR, sha1.substring(0, 2));
+            f = join(f, sha1.substring(2, sha1.length()));
+            if (f.exists()) {
+                f.delete();
+            }
+
             //stage for removal
             idx.trackFileToRemove(filename, sha1);
 
@@ -221,6 +228,7 @@ public class Repository {
             }
 
         }
+        idx.saveIndex();
     }
 
     /* ------------These methods handle the "log" command --------------------------- */
@@ -238,7 +246,6 @@ public class Repository {
         printLog(curr, sha1);
 
     }
-
 
     public static void globalLog() {
         //iterate through the head dir and get a list of sha1 String
@@ -280,7 +287,7 @@ public class Repository {
         Boolean isFind = false;
         if (lst != null) {
             String sha1;
-            Commit curr = null;
+            Commit curr;
 
             for (String i : lst) {
                 File f = join(REFHEADS_DIR, i);
@@ -306,6 +313,55 @@ public class Repository {
         if (!isFind) {
             System.out.println("Found no commit with that message.");
         }
+    }
+
+    /* ------------These methods handle the "find" command --------------------------- */
+    public static void status() {
+        //branches
+        System.out.println("=== Branches ===");
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+
+        File Head = join(GITLET_DIR, "HEAD");
+        String head = readContentsAsString(Head);
+
+        if (lst != null) {
+            Collections.sort(lst);
+            for (String i : lst) {
+                if (head.equals(i)) {
+                    System.out.print("*");
+                }
+                System.out.println(i);
+            }
+        }
+        System.out.println();
+
+        //staged files for addition or removed files
+        Index idx = Index.fromFile();
+        TreeMap<String, String> addition = idx.getTrackedFile();
+        TreeMap<String, String> removal = idx.getRemovalFile();
+
+        System.out.println("=== Staged Files ===");
+        if (addition != null) {
+            for (String k : addition.keySet()) {
+                System.out.println(k);
+            }
+        }
+        System.out.println();
+
+        System.out.println("=== Removed Files ===");
+        if (removal != null) {
+            for (String k : removal.keySet()) {
+                System.out.println(k);
+            }
+        }
+        System.out.println();
+
+        //TODO:Modifications Not Staged For Commit & Untracked Files
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+        System.out.println("=== Untracked Files ===");
+        System.out.println();
+
     }
 
 }
