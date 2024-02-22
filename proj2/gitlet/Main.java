@@ -19,6 +19,7 @@ public class Main {
 
         String firstArg = args[0];
 
+
         switch(firstArg) {
             case "init":
                 initialization();
@@ -42,6 +43,10 @@ public class Main {
                 break;
             case "global-log":
                 globalLog();
+                break;
+            case "find":
+                String mg = args[1];
+                find(mg);
                 break;
 
         }

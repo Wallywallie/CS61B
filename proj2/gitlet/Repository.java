@@ -239,7 +239,7 @@ public class Repository {
 
     }
 
-    /* ------------These methods handle the "global-log" command --------------------------- */
+
     public static void globalLog() {
         //iterate through the head dir and get a list of sha1 String
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);
@@ -272,6 +272,40 @@ public class Repository {
             sha1 = parentCommit;
         }
 
+    }
+
+    /* ------------These methods handle the "find" command --------------------------- */
+    public static void find(String msg) {
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        Boolean isFind = false;
+        if (lst != null) {
+            String sha1;
+            Commit curr = null;
+
+            for (String i : lst) {
+                File f = join(REFHEADS_DIR, i);
+
+                if (f.exists()) {
+                    sha1 = readContentsAsString(f);
+                    curr = Commit.fromFile(sha1);
+
+                    while(curr != null) {
+                        String currMsg = curr.message;
+                        if (currMsg.equals(msg)) {
+                            System.out.println(sha1);
+                            isFind = true;
+                        }
+                        String parentCommit = curr.parent;
+                        curr = Commit.fromFile(parentCommit);
+                        sha1 = parentCommit;
+                    }
+                }
+            }
+        }
+
+        if (!isFind) {
+            System.out.println("Found no commit with that message.");
+        }
     }
 
 }
