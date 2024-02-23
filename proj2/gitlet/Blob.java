@@ -2,23 +2,28 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 
 import static gitlet.Repository.COMMIT_DIR;
-import static gitlet.Utils.join;
-import static gitlet.Utils.readObject;
+import static gitlet.Utils.*;
 
 public class Blob implements Serializable {
-    public File file;
+
 
     public String sha1;
+
     public String filename;
 
-    public Blob(File f) {
+    private byte[] contents;
 
-        file = f;
+
+    public Blob(File f) {
+        contents = Utils.readContents(f);
         filename = f.getName();
-        sha1 = Utils.sha1(Utils.readContents(f));
+        sha1 = Utils.sha1(contents);
+
     }
+
 
     public void saveBlob() {
         //TODO:simplify the code
@@ -59,6 +64,10 @@ public class Blob implements Serializable {
             }
         }
         return blob;
+    }
+
+    public void writeInFile(File file) {
+        writeContents(file, new String(contents, StandardCharsets.UTF_8));
     }
 
 }

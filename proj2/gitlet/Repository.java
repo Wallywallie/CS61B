@@ -302,6 +302,7 @@ public class Repository {
                         if (currMsg.equals(msg)) {
                             System.out.println(sha1);
                             isFind = true;
+                            break;
                         }
                         String parentCommit = curr.parent;
                         curr = Commit.fromFile(parentCommit);
@@ -396,16 +397,11 @@ public class Repository {
         }
 
         //take all relevant files and put them in CWD
-
         Commit cmt = Commit.getBranchCommit(branch);
         if (cmt != null) {
             if (!cmt.mapping.isEmpty()) {
                 for (String i : cmt.mapping.keySet()) {
-                   Blob blob = Blob.fromFile(cmt.mapping.get(i));
-                   if (blob != null) {
-                       File f = blob.file;
-                       f.renameTo(new File(f.getPath()));
-                   }
+                    overwrite(cmt.mapping.get(i));
                 }
 
                 //files tracked in the current branch but not in the check-out branch should be deleted
@@ -434,6 +430,47 @@ public class Repository {
         Index newIndex = new Index();
         newIndex.saveIndex();
     }
+    public static void checkoutCfile(String commitId, String filename) {
+        //failure case: commitId does not exist
+        if (!isCommitExist(commitId)) {
+            System.out.println("No commit with that id exists.");
+        }
+        Commit cmt = Commit.fromFile(commitId);
+        checkout(cmt, filename);
+    }
+
+    public static void checkoutFile(String filename) {
+
+        Commit curr = Commit.getCurrCommit();
+        checkout(curr, filename);
+
+    }
+    private static boolean isCommitExist(String commitId){
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        if (lst != null) {
+            String sha1;
+            Commit curr;
+
+            for (String i : lst) {
+                File f = join(REFHEADS_DIR, i);
+
+                if (f.exists()) {
+                    sha1 = readContentsAsString(f);
+                    curr = Commit.fromFile(sha1);
+
+                    while(curr != null) {
+                        if (commitId.equals(sha1)) {
+                            return true;
+                        }
+                        String parentCommit = curr.parent;
+                        curr = Commit.fromFile(parentCommit);
+                        sha1 = parentCommit;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     private static boolean isWorkingFileTracked(String name, String branch) {
         //untracked files: files present in the working directory but neither staged for addition nor tracked.
@@ -456,11 +493,29 @@ public class Repository {
         }
         return true;
     }
-    public static void checkout() {
 
+    private static void checkout(Commit cmt, String filename) {
+        //failure case:the file does not exit
+        if (!cmt.isTracked(filename)) {
+            System.out.println("File does not exist in that commit.");
+            System.exit(0);
+        }
 
-
+        //overwrite the file
+        overwrite(cmt.mapping.get(filename));
     }
+
+    private static void overwrite(String sha1) {
+        Blob blob = Blob.fromFile(sha1);
+        if (blob != null) {
+            File f = new File(blob.filename);
+            blob.writeInFile(f);
+            System.out.println(f.getName() + " has been rename to " + f.getPath());
+            System.out.println("file contents: " + readContentsAsString(f));
+        }
+    }
+
+    /* ------------These methods handle the "branch" command --------------------------- */
     public static void createBranch(String branch) {
         //failure case: if the branch already exists
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);

@@ -56,16 +56,25 @@ public class Main {
                 if (cnt == 2) {
                     String brachName = args[1];
                     checkoutBranch(brachName);
+                    break;
                 } else if (cnt == 3){
                     String fileName = args[2];
+                    checkoutFile(fileName );
+                    break;
                 } else if (cnt == 4) {
                     String commitId = args[1];
                     String fileName = args[3];
+                    checkoutCfile(commitId, fileName);
+                    break;
                 }
                 break;
             case "branch":
                 String branch = args[1];
                 createBranch(branch);
+                break;
+            case "rm-branch":
+                break;
+            case "reset":
                 break;
         }
 
