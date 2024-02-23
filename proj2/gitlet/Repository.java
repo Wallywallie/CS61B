@@ -249,6 +249,8 @@ public class Repository {
     }
 
     public static void globalLog() {
+        //TODO: re-print a lot of common commits
+
         //iterate through the head dir and get a list of sha1 String
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);
         if (lst != null) {
@@ -358,10 +360,21 @@ public class Repository {
         }
         System.out.println();
 
-        //TODO:Modifications Not Staged For Commit & Untracked Files
+        //TODO:Modifications Not Staged For Commit
         System.out.println("=== Modifications Not Staged For Commit ===");
         System.out.println();
+
+
         System.out.println("=== Untracked Files ===");
+        String currBranch = Commit.getCurrBranch();
+        File[] files = CWD.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isFile() && !isWorkingFileTracked(f.getName(), currBranch)) {
+                    System.out.println(f.getName());
+                }
+            }
+        }
         System.out.println();
 
     }
@@ -544,5 +557,35 @@ public class Repository {
         }
 
     }
+
+    /* ------------These methods handle the "rm-branch" command --------------------------- */
+    public static void removeBranch(String branch) {
+        //failure case: if the branch does not exist
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        if (lst != null) {
+            if (!lst.contains(branch)) {
+                System.out.println("A branch with that name does not exist.");
+                return;
+            }
+        }
+
+        //failure case: can't remove current branch
+        String currBranch = Commit.getCurrBranch();
+        if (currBranch.equals(branch)) {
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+
+        //remove pointer associated with the branch and do not delete commit
+        File f = join(REFHEADS_DIR, branch);
+        if (f.exists()) {
+            f.delete();
+        }
+
+
+
+    }
+
+
 
 }

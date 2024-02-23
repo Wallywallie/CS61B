@@ -73,6 +73,8 @@ public class Main {
                 createBranch(branch);
                 break;
             case "rm-branch":
+                String branchname = args[1];
+                removeBranch(branchname);
                 break;
             case "reset":
                 break;

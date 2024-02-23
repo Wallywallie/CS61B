@@ -90,10 +90,10 @@ public class Commit implements Serializable, Dumpable {
             }
         }
 
-        //write current sha1 into branch, namely master
-        HEAD = sha1code; // idea:this HEAD is not written in the commit file
-        File masterfile = join(REFHEADS_DIR, "master");
-        writeContents(masterfile, sha1code);
+        //write current sha1 into branch
+        String branch = getCurrBranch();
+        File branchfile = join(REFHEADS_DIR, branch);
+        writeContents(branchfile, sha1code);
 
     }
 
@@ -140,7 +140,6 @@ public class Commit implements Serializable, Dumpable {
     public static Commit getCurrCommit() {
         Commit curr = null;
         String branch = Commit.getCurrBranch();
-        //Here for simplify ignore other branches --->to be solved
         File[] files = REFHEADS_DIR.listFiles();
         String sha1forCurrCommit;
         for (File f : files) {
@@ -184,15 +183,6 @@ public class Commit implements Serializable, Dumpable {
     }
 
 
-    public void saveBranch() {
-
-        File master = new File(".gitlet/refs/heads/master");
-        writeContents(master, HEAD);
-    }
-
-    public void generateSHA1() {
-        sha1code = sha1(blobs);
-    }
 
 
     @Override
