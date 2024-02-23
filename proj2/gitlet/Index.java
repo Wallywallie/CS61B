@@ -85,4 +85,9 @@ public class Index implements Serializable {
         }
         return null;
     }
+    public static void cleanStaging() {
+        //clean the staging area
+        Index newIndex = new Index();
+        newIndex.saveIndex();
+    }
 }

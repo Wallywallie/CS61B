@@ -177,9 +177,7 @@ public class Repository {
         curr.saveCommit();
 
         //clean the staging area
-        Index newIndex = new Index();
-        newIndex.saveIndex();
-
+        Index.cleanStaging();
 
     }
 
@@ -398,16 +396,7 @@ public class Repository {
         }
 
         //failure case: a working file is untracked in the current branch
-        String currBranch = Commit.getCurrBranch();
-        File[] files = CWD.listFiles();
-        if (files != null) {
-            for (File f : files) {
-                if (f.isFile() && !isWorkingFileTracked(f.getName(), currBranch)) {
-                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                    System.exit(0);
-                }
-            }
-        }
+        checkUntrackedFile();
 
         //take all relevant files and put them in CWD
         Commit cmt = Commit.getBranchCommit(branch);
@@ -439,15 +428,15 @@ public class Repository {
             writeContents(Head, branch);
         }
 
-        //clear the staging area
-        Index newIndex = new Index();
-        newIndex.saveIndex();
+        //clean the staging area
+        Index.cleanStaging();
     }
+
     public static void checkoutCfile(String commitId, String filename) {
+        //TODO:abbreviate hexadecimal commitId
         //failure case: commitId does not exist
-        if (!isCommitExist(commitId)) {
-            System.out.println("No commit with that id exists.");
-        }
+        checkId(commitId);
+
         Commit cmt = Commit.fromFile(commitId);
         checkout(cmt, filename);
     }
@@ -458,7 +447,11 @@ public class Repository {
         checkout(curr, filename);
 
     }
-    private static boolean isCommitExist(String commitId){
+
+    private static void checkId(String commitId){
+        //TODO:abbreviate hexadecimal commitId
+
+        //failure case: commitId does not exist
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);
         if (lst != null) {
             String sha1;
@@ -473,7 +466,8 @@ public class Repository {
 
                     while(curr != null) {
                         if (commitId.equals(sha1)) {
-                            return true;
+                            System.out.println();
+                            return ;
                         }
                         String parentCommit = curr.parent;
                         curr = Commit.fromFile(parentCommit);
@@ -482,7 +476,7 @@ public class Repository {
                 }
             }
         }
-        return false;
+        System.out.println("No commit with that id exists.");
     }
 
     private static boolean isWorkingFileTracked(String name, String branch) {
@@ -527,6 +521,20 @@ public class Repository {
             System.out.println("file contents: " + readContentsAsString(f));
         }
     }
+    private static void checkUntrackedFile() {
+        String currBranch = Commit.getCurrBranch();
+        File[] files = CWD.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isFile() && !isWorkingFileTracked(f.getName(), currBranch)) {
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
+        }
+
+    }
+
 
     /* ------------These methods handle the "branch" command --------------------------- */
     public static void createBranch(String branch) {
@@ -586,6 +594,51 @@ public class Repository {
 
     }
 
+    public static void reset(String commitId) {
+        //TODO:abbreviate hexadecimal commitId
+
+        //failure case: commitId does not exist
+        checkId(commitId);
+
+        //failure case: a working file is untracked in the current branch
+        checkUntrackedFile();
+
+        //Checks out all the files tracked by the given commit.
+        Commit cmt = Commit.fromFile(commitId);
+        if (!cmt.mapping.isEmpty()) {
+            for (String i : cmt.mapping.keySet()) {
+                overwrite(cmt.mapping.get(i));
+            }
+
+            //Removes tracked files that are not present in that commit.
+            Commit curr = Commit.getCurrCommit();
+            if (curr != null) {
+                if (!curr.mapping.isEmpty()) {
+                    for (String k : curr.mapping.keySet()) {
+                        //if cmt does not track file tracked by curr, delete the file
+                        if (!cmt.mapping.containsKey(k)) {
+                            File f = join(CWD, k);
+                            if (f.exists()) {
+                                f.delete();
+                            }
+                        }
+                    }
+                }
+
+            }
+
+        }
+
+        //moves the current branch’s head to that commit node.
+        String branch = Commit.getCurrBranch();
+        File f = join(REFHEADS_DIR, branch);
+        if (f.exists()) {
+            writeContents(f, commitId);
+        }
+
+        //clean staging area
+        Index.cleanStaging();
+    }
 
 
 }
