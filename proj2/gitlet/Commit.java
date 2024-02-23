@@ -50,22 +50,7 @@ public class Commit implements Serializable, Dumpable {
     //filename ->its sha1 code
     public TreeMap<String, String> mapping;
 
-    private class CommitTree {
 
-        String cur;
-        CommitTree prev;
-        CommitTree(String c ,CommitTree p) {
-            cur = c;
-            prev = p;
-        }
-        CommitTree(String c) {
-            cur = c;
-            prev = null;
-        }
-
-    }
-
-    public CommitTree t;
 
 
     public Commit(String msg) {
@@ -118,8 +103,22 @@ public class Commit implements Serializable, Dumpable {
         return output;
     }
 
+    public static Commit getBranchCommit(String branch) {
+        Commit cmt = null;
+        File f = join(REFHEADS_DIR, branch);
+        if (f.exists()) {
+            String sha1 = readContentsAsString(f);
+            cmt = fromFile(sha1);
+        }
+        return cmt;
+    }
+
     public boolean isTracked(String filename) {
-        return mapping.containsKey(filename);
+        if (mapping != null) {
+            return mapping.containsKey(filename);
+        }
+        return false;
+
     }
 
     public void trackFile(TreeMap<String, String> mp) {
@@ -156,11 +155,14 @@ public class Commit implements Serializable, Dumpable {
     public static String getCurrBranch() {
         File[] files = Repository.GITLET_DIR.listFiles();
         File HEAD = null;
-        for (File f : files) {
-            if (f.isFile() && f.getName().equals("HEAD")) {
-                HEAD = f;
+        if (files != null) {
+            for (File f : files) {
+                if (f.isFile() && f.getName().equals("HEAD")) {
+                    HEAD = f;
+                }
             }
         }
+
         String branch = readContentsAsString(HEAD);
         return branch;
     }

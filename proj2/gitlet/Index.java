@@ -12,6 +12,23 @@ public class Index implements Serializable {
 
     private TreeMap<String, String> removal; // used for record file to be removed
 
+    private class CommitTree {
+
+        String cur;
+        CommitTree prev;
+        CommitTree(String c ,CommitTree p) {
+            cur = c;
+            prev = p;
+        }
+        CommitTree(String c) {
+            cur = c;
+            prev = null;
+        }
+
+    }
+
+    public CommitTree t;
+
     public Index() {
 
         mapping = new TreeMap<>();
@@ -28,7 +45,16 @@ public class Index implements Serializable {
     }
 
     public boolean isTracked(String filename) {
-        return mapping.containsKey(filename);
+        if (mapping != null) {
+            return mapping.containsKey(filename);
+        }
+        return false;
+    }
+    public boolean isInRemoval(String filename) {
+        if (removal != null) {
+            return removal.containsKey(filename);
+        }
+        return false;
     }
     public TreeMap<String, String> getTrackedFile () {
         return mapping;

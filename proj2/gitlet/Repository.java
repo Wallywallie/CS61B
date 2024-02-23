@@ -170,8 +170,9 @@ public class Repository {
         }
 
         //record the staging area into commit;
-        curr.trackFile(mapping);
         curr.untrackFile(removal);
+        curr.trackFile(mapping);
+
 
         curr.saveCommit();
 
@@ -193,7 +194,6 @@ public class Repository {
             System.out.println("No reason to remove the file.");
             return;
         }
-
 
 
         if (isStaged) {
@@ -367,12 +367,94 @@ public class Repository {
 
     /* ------------These methods handle the "checkout" command --------------------------- */
     public static void checkoutBranch(String branch) {
+        //failure case: no such branch exists
+        List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        if (lst != null) {
+            if (!lst.contains(branch)) {
+                System.out.println("No such branch exists.");
+                return;
+            }
+        }
 
+        //failure case: if branch is the current branch
+        String currBranchName = Commit.getCurrBranch();
+        if (branch.equals(currBranchName)) {
+            System.out.println("No need to checkout the current branch.");
+            return;
+        }
 
+        //failure case: a working file is untracked in the current branch
+        String currBranch = Commit.getCurrBranch();
+        File[] files = CWD.listFiles();
+        if (files != null) {
+            for (File f : files) {
+                if (f.isFile() && !isWorkingFileTracked(f.getName(), currBranch)) {
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
+        }
 
+        //take all relevant files and put them in CWD
 
+        Commit cmt = Commit.getBranchCommit(branch);
+        if (cmt != null) {
+            if (!cmt.mapping.isEmpty()) {
+                for (String i : cmt.mapping.keySet()) {
+                   Blob blob = Blob.fromFile(cmt.mapping.get(i));
+                   if (blob != null) {
+                       File f = blob.file;
+                       f.renameTo(new File(f.getPath()));
+                   }
+                }
 
+                //files tracked in the current branch but not in the check-out branch should be deleted
+                Commit curr = Commit.getCurrCommit();
+                if (!curr.mapping.isEmpty()) {
+                    for (String i : curr.mapping.keySet()) {
+                        if (!cmt.mapping.containsKey(i)) {
+                            File f = join(CWD, i);
+                            if (f.exists()) {
+                                f.delete();
+                                System.out.println(i + " has been deleted");
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
+        //the check-out branch is considered as the current branch
+        File Head = join(GITLET_DIR, "HEAD");
+        if (Head.exists()) {
+            writeContents(Head, branch);
+        }
+
+        //clear the staging area
+        Index newIndex = new Index();
+        newIndex.saveIndex();
+    }
+
+    private static boolean isWorkingFileTracked(String name, String branch) {
+        //untracked files: files present in the working directory but neither staged for addition nor tracked.
+        boolean isStaged;
+        boolean isInRemoval;
+        boolean isTracked;
+
+        //file not staged
+        Index idx = Index.fromFile();
+
+        isStaged = idx.isTracked(name);
+        isInRemoval = idx.isInRemoval(name);
+
+        //file not tracked in current branch commit
+        Commit cmt = Commit.getBranchCommit(branch);
+        isTracked = cmt.isTracked(name);
+
+        if (((!isStaged) && (!isTracked)) || isInRemoval) {
+            return false;
+        }
+        return true;
     }
     public static void checkout() {
 
