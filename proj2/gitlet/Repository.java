@@ -135,9 +135,7 @@ public class Repository {
         blob.saveBlob();
     }
 
-    /* this method handles the commit command
-    *
-    * */
+    /* ------------These methods handle the "commit" command --------------------------- */
     public static void gitCommit(String msg) {
 
         //failure cases: no comment
@@ -209,13 +207,17 @@ public class Repository {
 
         if (isTracked) {
 
-            //delete the relevant blob
+
+            //delete the relevant blob  ------>to resolve: should i delete relevant blob?
             String sha1 = curr.mapping.get(filename);
+            /*
             File f = join(COMMIT_DIR, sha1.substring(0, 2));
             f = join(f, sha1.substring(2, sha1.length()));
             if (f.exists()) {
                 f.delete();
             }
+            */
+
 
             //stage for removal
             idx.trackFileToRemove(filename, sha1);
@@ -304,9 +306,8 @@ public class Repository {
                             isFind = true;
                             break;
                         }
-                        String parentCommit = curr.parent;
-                        curr = Commit.fromFile(parentCommit);
-                        sha1 = parentCommit;
+                        sha1 = curr.parent;
+                        curr = Commit.fromFile(sha1);
                     }
                 }
             }
@@ -594,8 +595,12 @@ public class Repository {
 
     }
 
+    /* ------------These methods handle the "reset" command --------------------------- */
+
     public static void reset(String commitId) {
         //TODO:abbreviate hexadecimal commitId
+        //TODO: testing
+        //TODO: simplify the code with part of "checkout branch"
 
         //failure case: commitId does not exist
         checkId(commitId);
@@ -638,6 +643,142 @@ public class Repository {
 
         //clean staging area
         Index.cleanStaging();
+    }
+
+    /* ------------These methods handle the "merge" command --------------------------- */
+    public static void merge(String branchname) {
+        //find the split commit
+        List<String> commitIds = new ArrayList<>();
+        Commit curr = Commit.getCurrCommit();
+        String currbranch = Commit.getCurrBranch();
+        String sha1 = currbranch;
+
+        Commit branch = Commit.getBranchCommit(branchname);
+        String givenbranch = branchname;
+        String commonId = null;
+
+        TreeMap<String, String> currMp = curr.mapping;
+        TreeMap<String, String> branchMp = branch.mapping;
+
+        while (curr != null) {
+            commitIds.add(sha1);
+
+            sha1 = curr.parent;
+            curr = Commit.fromFile(sha1);
+        }
+
+        while (branch != null){
+            if (commitIds.contains(givenbranch)) {
+                commonId = givenbranch;
+                break;
+            }
+            givenbranch = branch.parent;
+            branch = Commit.fromFile(givenbranch);
+        }
+
+        //If the split point is the same commit as the given branch
+        if (branchname.equals(commonId)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+
+        //If the split point is the current branch, then the effect is to check out the given branch
+        if (currbranch.equals(commonId)) {
+            checkoutBranch(branchname);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+        //Any files that have been modified in the given branch since the split point, but not modified in the current branch since the split point should be changed to their versions in the given branch
+
+        Commit common = Commit.fromFile(commonId);
+        TreeMap<String, String> commonMp = common.mapping;
+
+        for (String i : branchMp.keySet()) {
+            if ((!commonMp.containsKey(i) || (!branchMp.get(i).equals(commonMp.get(i))))) {
+                overwrite(branchMp.get(i));
+
+                //then automatically staged
+                add(i);
+            }
+
+        }
+
+
+        Set<String> files = new HashSet<>();
+
+        files.addAll(currMp.keySet());
+        files.addAll(branchMp.keySet());
+        files.addAll(commonMp.keySet());
+
+        curr = Commit.getCurrCommit();
+        branch = Commit.getBranchCommit(branchname);
+
+        for (String f : files) {
+            status b = getStatus(common, branch, f);
+            status c = getStatus(common, curr, f);
+            if ( (b.equals(status.modified) && c.equals(status.unmodified)) || (b.equals(status.added) && c.equals(status.notExist))) {
+
+                /*1.Any files that have been modified in the given branch since the split point,
+                 * but not modified in the current branch since the split point should be changed to their versions in the given branch
+                 * (checked out from the commit at the front of the given branch).
+                 * These files should then all be automatically staged.
+                 * */
+
+                /*5.Any files that were not present at the split point and are present only in the given branch should be checked out and staged.
+                 */
+
+
+                checkout(branch,f);
+                add(f);
+
+            } else if (b.equals(status.removed) && c.equals(status.unmodified)) {
+                /*6.Any files present at the split point, unmodified in the current branch,
+                 * and absent in the given branch should be removed (and untracked).
+                 * */
+                remove(f);
+
+            } else if (b.equals(status.unmodified) || b.equals(status.notExist) || (b.equals(status.removed) && c.equals(status.removed))) {
+                continue;
+            } else {
+
+            }
+
+
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+    private enum status{
+        unmodified, modified, removed, added, notExist
+    }
+    private static status getStatus(Commit common, Commit cmt, String filename) {
+        TreeMap<String, String> commonMp = common.mapping;
+        TreeMap<String, String> cmtMp = cmt.mapping;
+        if (commonMp.containsKey(filename) && cmtMp.containsKey(filename)) {
+
+            if (commonMp.get(filename).equals(cmtMp.get(filename))  ) {
+                return status.unmodified;
+            } else {
+                return status.modified;
+            }
+        } else if (commonMp.containsKey(filename)) {
+            return status.removed;
+
+        } else if (cmtMp.containsKey(filename)) {
+            return status.added;
+        } else {
+            return status.notExist;
+        }
+
     }
 
 

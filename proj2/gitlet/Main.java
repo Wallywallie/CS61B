@@ -77,7 +77,12 @@ public class Main {
                 removeBranch(branchname);
                 break;
             case "reset":
+                String commitId = args[1];
+                reset(commitId);
                 break;
+            case "merge":
+                String branchName = args[1];
+                merge(branchName);
         }
 
 
