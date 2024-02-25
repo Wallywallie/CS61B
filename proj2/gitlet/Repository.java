@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static gitlet.Utils.*;
@@ -518,8 +519,6 @@ public class Repository {
         if (blob != null) {
             File f = new File(blob.filename);
             blob.writeInFile(f);
-            System.out.println(f.getName() + " has been rename to " + f.getPath());
-            System.out.println("file contents: " + readContentsAsString(f));
         }
     }
     private static void checkUntrackedFile() {
@@ -741,6 +740,12 @@ public class Repository {
             } else if (b.equals(status.unmodified) || b.equals(status.notExist) || (b.equals(status.removed) && c.equals(status.removed))) {
                 continue;
             } else {
+                String currVersion = currMp.get(f);
+                String branchVersion = branchMp.get(f);
+                if (currVersion != null && currVersion.equals(branchVersion)) {
+                    continue;
+                }
+                handleContents(f, currVersion, branchVersion);
 
             }
 
@@ -754,6 +759,30 @@ public class Repository {
 
 
 
+
+    }
+    private static void handleContents(String name, String currSha1, String branchSha1) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<<<<<<< HEAD");
+        builder.append("\n");
+        if (currSha1 != null) {
+            String content = Blob.fromFile(currSha1).getContent();
+            builder.append(content);
+            builder.append("\n");
+
+        }
+
+        builder.append("=======");
+        builder.append("\n");
+        if (branchSha1 != null) {
+            String content = Blob.fromFile(branchSha1).getContent();
+            builder.append(content);
+            builder.append("\n");
+        }
+        builder.append(">>>>>>>");
+        File f = join(CWD, name);
+
+        writeContents(f, builder);
 
     }
 

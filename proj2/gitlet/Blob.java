@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import static gitlet.Repository.COMMIT_DIR;
 import static gitlet.Utils.*;
 
-public class Blob implements Serializable {
+ class Blob implements Serializable {
 
 
     public String sha1;
@@ -68,6 +68,9 @@ public class Blob implements Serializable {
 
     public void writeInFile(File file) {
         writeContents(file, new String(contents, StandardCharsets.UTF_8));
+    }
+    public String getContent() {
+        return new String(contents, StandardCharsets.UTF_8);
     }
 
 }
