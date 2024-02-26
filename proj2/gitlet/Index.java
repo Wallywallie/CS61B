@@ -1,5 +1,7 @@
 package gitlet;
 
+import jdk.jshell.execution.Util;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -69,8 +71,7 @@ public class Index implements Serializable {
 
 
     public void saveIndex() {
-        String filename = ".gitlet/index";
-        File outfile = new File(filename);
+        File outfile = Utils.join(Repository.GITLET_DIR, "index");
         Utils.writeObject(outfile, this);
     }
 

@@ -38,6 +38,7 @@ public class Commit implements Serializable, Dumpable {
 
     /** The parent commit for current commit, store the parent's commit in the form of String, namely sha1 code*/
     public String parent;
+    public String parent2;
 
     /** Store the head of current branch*/
     public static String HEAD;
@@ -76,7 +77,7 @@ public class Commit implements Serializable, Dumpable {
         for (File f : files) {
             if (f.isFile() && f.getName().equals("Commit")) {
                 sha1code = Utils.sha1(readContents(f));
-                System.out.println(sha1code);
+                //System.out.println(sha1code);
                 String foldername = sha1code.substring(0,2);
                 File folder = join(Repository.COMMIT_DIR, foldername);
                 if (!folder.exists()) {
@@ -84,7 +85,7 @@ public class Commit implements Serializable, Dumpable {
                 }
 
                 String newFilename = ".gitlet/objects/" + foldername + "/"+ sha1code.substring(2,sha1code.length());
-                System.out.println(newFilename);
+                //System.out.println(newFilename);
                 File newFile = new File(newFilename);
                 f.renameTo(newFile);
             }
@@ -180,6 +181,16 @@ public class Commit implements Serializable, Dumpable {
         }
 
         return commit;
+    }
+
+    public static String getBranchSha1(String branchanme) {
+
+        File f = join(REFHEADS_DIR, branchanme);
+        if (f.exists()) {
+            return readContentsAsString(f);
+        }
+        return null;
+
     }
 
 

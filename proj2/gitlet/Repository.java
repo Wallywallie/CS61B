@@ -244,7 +244,6 @@ public class Repository {
             sha1 = readContentsAsString(f);
         }
 
-        //TODO:Merge case
         printLog(curr, sha1);
 
     }
@@ -274,6 +273,10 @@ public class Repository {
         while (curr != null) {
             System.out.println("===");
             System.out.println("commit: " + sha1);
+            //case: merge commit
+            if (curr.parent2 != null) {
+                System.out.println("Merge: " + curr.parent.substring(0, 7) + " " + curr.parent2.substring(0, 7));
+            }
             System.out.println("Date: " + curr.printDate());
             System.out.println(curr.message);
             System.out.println();
@@ -435,11 +438,13 @@ public class Repository {
     }
 
     public static void checkoutCfile(String commitId, String filename) {
-        //TODO:abbreviate hexadecimal commitId
-        //failure case: commitId does not exist
-        checkId(commitId);
 
-        Commit cmt = Commit.fromFile(commitId);
+        //failure case: commitId does not exist
+        Commit cmt = checkId(commitId);
+        if ( cmt == null) {
+            return;
+        }
+
         checkout(cmt, filename);
     }
 
@@ -450,14 +455,14 @@ public class Repository {
 
     }
 
-    private static void checkId(String commitId){
-        //TODO:abbreviate hexadecimal commitId
+    private static Commit checkId(String commitId){
 
         //failure case: commitId does not exist
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);
+        String sha1;
+        Commit curr;
         if (lst != null) {
-            String sha1;
-            Commit curr;
+
 
             for (String i : lst) {
                 File f = join(REFHEADS_DIR, i);
@@ -467,9 +472,9 @@ public class Repository {
                     curr = Commit.fromFile(sha1);
 
                     while(curr != null) {
-                        if (commitId.equals(sha1)) {
-                            System.out.println();
-                            return ;
+                        //case: abbreviate hexadecimal commitId
+                        if (commitId.equals(sha1) || commitId.equals(sha1.substring(0, 6))) {
+                            return curr;
                         }
                         String parentCommit = curr.parent;
                         curr = Commit.fromFile(parentCommit);
@@ -479,6 +484,7 @@ public class Repository {
             }
         }
         System.out.println("No commit with that id exists.");
+        return null;
     }
 
     private static boolean isWorkingFileTracked(String name, String branch) {
@@ -597,18 +603,19 @@ public class Repository {
     /* ------------These methods handle the "reset" command --------------------------- */
 
     public static void reset(String commitId) {
-        //TODO:abbreviate hexadecimal commitId
         //TODO: testing
         //TODO: simplify the code with part of "checkout branch"
 
         //failure case: commitId does not exist
-        checkId(commitId);
+        Commit cmt = checkId(commitId);
+        if (cmt == null) {
+            return;
+        }
 
         //failure case: a working file is untracked in the current branch
         checkUntrackedFile();
 
         //Checks out all the files tracked by the given commit.
-        Commit cmt = Commit.fromFile(commitId);
         if (!cmt.mapping.isEmpty()) {
             for (String i : cmt.mapping.keySet()) {
                 overwrite(cmt.mapping.get(i));
@@ -646,14 +653,18 @@ public class Repository {
 
     /* ------------These methods handle the "merge" command --------------------------- */
     public static void merge(String branchname) {
+        //TODO: if branch does not exist
+
         //find the split commit
         List<String> commitIds = new ArrayList<>();
         Commit curr = Commit.getCurrCommit();
         String currbranch = Commit.getCurrBranch();
-        String sha1 = currbranch;
+        String sha1 = Commit.getBranchSha1(currbranch);
 
         Commit branch = Commit.getBranchCommit(branchname);
-        String givenbranch = branchname;
+        String givenbranchId = Commit.getBranchSha1(branchname);
+        String bsha1 = givenbranchId;
+
         String commonId = null;
 
         TreeMap<String, String> currMp = curr.mapping;
@@ -667,16 +678,16 @@ public class Repository {
         }
 
         while (branch != null){
-            if (commitIds.contains(givenbranch)) {
-                commonId = givenbranch;
+            if (commitIds.contains(bsha1)) {
+                commonId = bsha1;
                 break;
             }
-            givenbranch = branch.parent;
-            branch = Commit.fromFile(givenbranch);
+            bsha1 = branch.parent;
+            branch = Commit.fromFile(bsha1);
         }
 
         //If the split point is the same commit as the given branch
-        if (branchname.equals(commonId)) {
+        if (givenbranchId.equals(commonId)) {
             System.out.println("Given branch is an ancestor of the current branch.");
             return;
         }
@@ -712,6 +723,7 @@ public class Repository {
 
         curr = Commit.getCurrCommit();
         branch = Commit.getBranchCommit(branchname);
+        boolean isConflict = false;
 
         for (String f : files) {
             status b = getStatus(common, branch, f);
@@ -746,19 +758,35 @@ public class Repository {
                     continue;
                 }
                 handleContents(f, currVersion, branchVersion);
+                isConflict = true;
 
+
+
+            }
+            //merge commit
+            String msg = "Merged " + branchname + " into " + currbranch;
+            Index idx = Index.fromFile();
+            Commit merge = new Commit(msg);
+
+            merge.trackFile(currMp);
+            merge.trackFile(branchMp);
+            merge.parent2 = branchname;
+
+            //record the staging area into commit;
+            merge.untrackFile(idx.getRemovalFile());
+            merge.trackFile(idx.getTrackedFile());
+
+            merge.saveCommit();
+
+            //clean the staging area
+            Index.cleanStaging();
+            if (isConflict) {
+                System.out.println("Encountered a merge conflict.");
             }
 
 
+
         }
-
-
-
-
-
-
-
-
 
     }
     private static void handleContents(String name, String currSha1, String branchSha1) {
@@ -782,7 +810,7 @@ public class Repository {
         builder.append(">>>>>>>");
         File f = join(CWD, name);
 
-        writeContents(f, builder);
+        writeContents(f, builder.toString());
 
     }
 
