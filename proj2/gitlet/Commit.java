@@ -17,7 +17,7 @@ import static gitlet.Utils.join;
  *
  *  @author TODO
  */
-public class Commit implements Serializable, Dumpable {
+public class Commit implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -60,7 +60,7 @@ public class Commit implements Serializable, Dumpable {
 
         mapping = new TreeMap<>();
         File masterfile = join(REFHEADS_DIR, "master");
-        if (masterfile.isFile()) {
+        if (!readContentsAsString(masterfile).isEmpty()) {
             parent = readContentsAsString(masterfile);
         } else {
             parent = "null";
@@ -84,9 +84,8 @@ public class Commit implements Serializable, Dumpable {
                     folder.mkdir();
                 }
 
-                String newFilename = ".gitlet/objects/" + foldername + "/"+ sha1code.substring(2,sha1code.length());
                 //System.out.println(newFilename);
-                File newFile = new File(newFilename);
+                File newFile = join(folder, sha1code.substring(2));
                 f.renameTo(newFile);
             }
         }
@@ -99,7 +98,7 @@ public class Commit implements Serializable, Dumpable {
     }
 
     public String printDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy XXX", Locale.ENGLISH);
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy XX", Locale.ENGLISH);
         String output = sdf.format(timeStamp);
         return output;
     }
@@ -193,14 +192,5 @@ public class Commit implements Serializable, Dumpable {
 
     }
 
-
-
-
-    @Override
-    public void dump() {
-        System.out.printf("size: %d%nmapping: %s%n", _size, mapping);
-    }
-
-    int _size;
 
 }

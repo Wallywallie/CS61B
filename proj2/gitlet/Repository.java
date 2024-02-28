@@ -69,13 +69,18 @@ public class Repository {
     public static void initialization() {
         checkfolder();
         GITLET_DIR.mkdir();
-        File HEAD = new File(".gitlet/HEAD");
+        File HEAD = join(GITLET_DIR, "HEAD");
         writeContents(HEAD,"master"); //初始化HEAD文件
 
         COMMIT_DIR.mkdir(); //------> not check yet
         REF_DIR.mkdir();
         REFHEADS_DIR.mkdir();
-        master = new File(".gitlet/refs/heads/master");
+        master =  join(REFHEADS_DIR, "master");
+        try {
+            master.createNewFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //initial commit
         String MSG = "initial commit";
@@ -147,7 +152,7 @@ public class Repository {
 
         //failure cases: no file has been staged
         Index index = Index.fromFile();
-        System.out.println(index.getTrackedFile().toString());
+        //System.out.println(index.getTrackedFile().toString());
         TreeMap<String, String> mapping = index.getTrackedFile();
         TreeMap<String, String> removal = index.getRemovalFile();
         if (mapping == null) {
@@ -272,7 +277,7 @@ public class Repository {
     private static void printLog(Commit curr, String sha1) {
         while (curr != null) {
             System.out.println("===");
-            System.out.println("commit: " + sha1);
+            System.out.println("commit " + sha1);
             //case: merge commit
             if (curr.parent2 != null) {
                 System.out.println("Merge: " + curr.parent.substring(0, 7) + " " + curr.parent2.substring(0, 7));
@@ -284,6 +289,7 @@ public class Repository {
             String parentCommit = curr.parent;
             curr = Commit.fromFile(parentCommit);
             sha1 = parentCommit;
+
         }
 
     }
@@ -291,7 +297,7 @@ public class Repository {
     /* ------------These methods handle the "find" command --------------------------- */
     public static void find(String msg) {
         List<String> lst = plainFilenamesIn(REFHEADS_DIR);
-        Boolean isFind = false;
+        boolean isFind = false;
         if (lst != null) {
             String sha1;
             Commit curr;
