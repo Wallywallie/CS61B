@@ -98,9 +98,10 @@ public class Commit implements Serializable {
     }
 
     public String printDate() {
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy XX", Locale.ENGLISH);
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
         String output = sdf.format(timeStamp);
         return output;
+
     }
 
     public static Commit getBranchCommit(String branch) {
