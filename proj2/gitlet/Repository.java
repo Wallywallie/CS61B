@@ -425,7 +425,6 @@ public class Repository {
                             File f = join(CWD, i);
                             if (f.exists()) {
                                 f.delete();
-                                System.out.println(i + " has been deleted");
                             }
                         }
                     }
